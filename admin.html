@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADMIN | CPX AKIRA V1.1</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at top, rgba(0,0,0,0.85), rgba(0,0,0,0.98)),
+        linear-gradient(145deg, #2f2940, #090712);
+      font-family: 'Inter', sans-serif;
+    }
+    .glass-box {
+      background: linear-gradient(145deg, #3a324d, #0b0715);
+      border-radius: 26px;
+      width: 95%;
+      max-width: 520px;
+      padding: 26px 26px 30px 26px;
+      border: 1px solid rgba(148,163,184,0.32);
+      box-shadow:
+        0 25px 70px rgba(0,0,0,0.95),
+        0 0 0 1px rgba(88,28,135,0.75);
+      backdrop-filter: blur(18px);
+    }
+    .font-cyber { font-family: 'Orbitron', sans-serif; }
+
+    .tab-btn {
+      color: #c4c4d4;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      color: #c4b5fd;
+      border-color: #a855f7;
+    }
+
+    .btn-time {
+      background: #05020b;
+      border-radius: 16px;
+      color: #e5e7eb;
+      border: 1px solid rgba(15,23,42,0.9);
+      transition: 0.2s;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.9);
+    }
+    .btn-time:hover { border-color: #6d28d9; }
+    .btn-time.active {
+      border-color: #a855f7;
+      box-shadow:
+        0 0 0 1px rgba(168,85,247,0.5),
+        0 10px 25px rgba(76,29,149,0.9);
+    }
+
+    .btn-gerar {
+      background: radial-gradient(circle at top left, #a855f7, #4c1d95);
+      color: #f9fafb;
+      font-weight: 800;
+      border-radius: 22px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      box-shadow:
+        0 14px 40px rgba(0,0,0,1),
+        0 0 35px rgba(168,85,247,0.8);
+      transition: 0.25s;
+      border: none;
+    }
+    .btn-gerar:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow:
+        0 18px 55px rgba(0,0,0,1),
+        0 0 45px rgba(196,181,253,0.95);
+    }
+
+    .tr-key {
+      border-bottom: 1px solid rgba(148,163,184,0.25);
+      background: rgba(5,2,11,0.9);
+    }
+    .tr-key:hover {
+      background: rgba(17,12,32,0.98);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(168,85,247,0.7);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass-box">
+    <h1 class="font-cyber text-center text-white text-xl mb-6 uppercase tracking-[0.5em]">
+      ADMIN <span class="text-purple-400">AKIRA V1.1</span>
+    </h1>
+
+    <div class="flex mb-8 border-b border-white/10">
+      <button onclick="switchTab('gerar')" id="b-gerar"
+              class="flex-1 text-[10px] font-bold uppercase tab-btn active pb-3 tracking-[0.3em]">
+        Gerar
+      </button>
+      <button onclick="switchTab('lista')" id="b-lista"
+              class="flex-1 text-[10px] font-bold uppercase tab-btn pb-3 tracking-[0.3em]">
+        Gerenciar
+      </button>
+    </div>
+
+    <div id="tab-gerar">
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <button onclick="setVal(0.0208, '30M', this)" class="btn-time p-4 text-[10px]">30M</button>
+        <button onclick="setVal(0.0833, '2H', this)" class="btn-time p-4 text-[10px]">2H</button>
+        <button onclick="setVal(1, '1D', this)" class="btn-time p-4 text-[10px]">1D</button>
+        <button onclick="setVal(7, '7D', this)" class="btn-time p-4 text-[10px]">7D</button>
+        <button onclick="setVal(15, '15D', this)" class="btn-time p-4 text-[10px]">15D</button>
+        <button onclick="setVal(30, '30D', this)" class="btn-time p-4 text-[10px]">30D</button>
+      </div>
+
+      <button onclick="setVal(0, 'VITALICIA', this)" class="btn-time w-full p-4 text-[10px] mb-6">
+        VITALÍCIA
+      </button>
+
+      <button onclick="gerarKey()" class="w-full btn-gerar py-5 text-sm">
+        GERAR CHAVE AGORA
+      </button>
+
+      <div id="key-res" class="hidden mt-6 p-4 bg-black/40 rounded-xl text-center font-cyber text-white border border-purple-500/40 text-xs tracking-[0.25em]"></div>
+    </div>
+
+    <div id="tab-lista" class="hidden max-h-[320px] overflow-y-auto text-white text-[11px] mt-2">
+      <table class="w-full">
+        <tbody id="lista-chaves"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyADWH-HdJUFByEuHBdHZkf7mDSD1-dBnRA",
+      authDomain: "cpx-akira.firebaseapp.com",
+      databaseURL: "https://cpx-akira-default-rtdb.firebaseio.com",
+      projectId: "cpx-akira",
+      storageBucket: "cpx-akira.firebasestorage.app",
+      messagingSenderId: "126066483108",
+      appId: "1:126066483108:web:ecbc2bb38a8e3e8575eb31"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let tDias = null;
+    let pref  = "";
+
+    function switchTab(t) {
+      document.getElementById('tab-gerar').classList.toggle('hidden', t === 'lista');
+      document.getElementById('tab-lista').classList.toggle('hidden', t === 'gerar');
+      document.getElementById('b-gerar').classList.toggle('active', t === 'gerar');
+      document.getElementById('b-lista').classList.toggle('active', t === 'lista');
+    }
+
+    function setVal(dias, prefixo, botao) {
+      tDias = dias;
+      pref  = prefixo;
+      document.querySelectorAll('.btn-time').forEach((btn) => btn.classList.remove('active'));
+      botao.classList.add('active');
+    }
+
+    function gerarKey() {
+      if (!pref) {
+        alert("Selecione um tempo para a key.");
+        return;
+      }
+
+      const rnd = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const key = `AKIRA-${pref}-${rnd}`;
+
+      const validade = (pref === 'VITALICIA')
+        ? null
+        : Date.now() + (tDias * 24 * 60 * 60 * 1000);
+
+      db.ref('chaves/' + key).set({ validade }).then(() => {
+        const box = document.getElementById('key-res');
+        box.classList.remove('hidden');
+        box.textContent = key;
+        if (navigator.clipboard) navigator.clipboard.writeText(key);
+      }).catch((err) => {
+        console.error(err);
+        alert("Erro ao salvar key.");
+      });
+    }
+
+    db.ref('chaves').on('value', (snap) => {
+      const list = document.getElementById('lista-chaves');
+      list.innerHTML = "";
+      const data = snap.val() || {};
+
+      Object.keys(data).forEach((key) => {
+        const v = data[key].validade;
+        const agora = Date.now();
+        const status = !v
+          ? 'VITALÍCIA'
+          : (agora > v ? 'EXPIRADA' : 'ATIVA');
+
+        list.innerHTML += `
+          <tr class="tr-key">
+            <td class="py-3 px-2 font-mono text-[10px] tracking-[0.25em]">
+              ${key}
+              <span class="ml-2 text-[9px] ${
+                status === 'ATIVA' ? 'text-green-400' :
+                status === 'EXPIRADA' ? 'text-red-400' :
+                'text-purple-300'
+              }">${status}</span>
+            </td>
+            <td class="text-right px-2">
+              <button onclick="apagarKey('${key}')"
+                      class="text-red-400 hover:text-red-500 font-bold uppercase text-[10px] tracking-[0.2em]">
+                Apagar
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+
+    function apagarKey(key) {
+      if (!confirm("Remover esta key?")) return;
+      db.ref('chaves/' + key).remove();
+    }
+  </script>
+</body>
+</html>
