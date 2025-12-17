@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPX AKIRA | SENSI V1.1</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at top, rgba(0,0,0,0.85), rgba(0,0,0,0.98)),
+        linear-gradient(145deg, #2f2940, #090712);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .glass-box {
+      background: linear-gradient(145deg, #3a324d, #0b0715);
+      border-radius: 26px;
+      width: 95%;
+      max-width: 520px;
+      padding: 26px 26px 30px 26px;
+      border: 1px solid rgba(148,163,184,0.32);
+      box-shadow:
+        0 25px 70px rgba(0,0,0,0.95),
+        0 0 0 1px rgba(88,28,135,0.75);
+      backdrop-filter: blur(18px);
+    }
+
+    .font-cyber { font-family: 'Orbitron', sans-serif; }
+
+    .tab-btn {
+      color: #c4c4d4;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      color: #c4b5fd;
+      border-color: #a855f7;
+    }
+
+    .input-akira {
+      background: #05020b;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      padding: 12px 10px;
+      width: 100%;
+      outline: none;
+      text-align: center;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.9);
+    }
+    .input-akira::placeholder { color: #6b7280; }
+    .input-akira:focus {
+      border-color: #a855f7;
+      box-shadow:
+        0 0 0 1px rgba(168,85,247,0.7),
+        0 10px 30px rgba(0,0,0,1);
+    }
+
+    .btn-primary {
+      background: radial-gradient(circle at top left, #a855f7, #4c1d95);
+      color: #f9fafb;
+      font-weight: 800;
+      text-transform: uppercase;
+      border-radius: 22px;
+      letter-spacing: 0.22em;
+      box-shadow:
+        0 14px 40px rgba(0,0,0,1),
+        0 0 35px rgba(168,85,247,0.8);
+      transition: 0.25s;
+      border: none;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow:
+        0 18px 55px rgba(0,0,0,1),
+        0 0 45px rgba(196,181,253,0.95);
+    }
+
+    .card-res {
+      background: radial-gradient(circle at top, #05020b, #000000);
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,0.8);
+      box-shadow: 0 14px 40px rgba(0,0,0,1);
+    }
+    .label-mini {
+      font-size: 8px;
+      letter-spacing: 0.22em;
+      color: #9ca3af;
+      text-transform: uppercase;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(168,85,247,0.7);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass-box">
+    <h1 class="font-cyber text-center text-white text-xl mb-6 uppercase tracking-[0.5em]">
+      CPX <span class="text-purple-400">AKIRA V1.1</span>
+    </h1>
+
+    <div class="flex mb-6 border-b border-white/10">
+      <button onclick="switchTab('sensi')" id="tab-sensi-btn"
+              class="flex-1 text-[10px] font-bold uppercase tab-btn active pb-3 tracking-[0.3em]">
+        Gerar Sensi
+      </button>
+      <button onclick="switchTab('keys')" id="tab-keys-btn"
+              class="flex-1 text-[10px] font-bold uppercase tab-btn pb-3 tracking-[0.3em]">
+        Gerenciar Key
+      </button>
+    </div>
+
+    <!-- ABA GERAR SENSI -->
+    <div id="tab-sensi">
+      <div id="login-screen" class="text-center mb-5">
+        <p class="text-[9px] text-zinc-300 uppercase tracking-[0.45em] mb-4">
+          Acesso ao Sistema
+        </p>
+        <input
+          type="text"
+          id="key-input"
+          placeholder="SUA KEY AQUI"
+          class="input-akira mb-4"
+        >
+        <button onclick="autenticar()" class="w-full btn-primary py-3 text-[10px]">
+          Entrar no Sistema
+        </button>
+      </div>
+
+      <div id="main-panel" class="hidden">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="font-cyber text-[13px] text-white uppercase tracking-[0.3em]">
+            Calibrar Dispositivo
+          </h2>
+          <span class="text-[10px] text-purple-300 uppercase tracking-[0.25em]">
+            V1.1
+          </span>
+        </div>
+
+        <div class="space-y-3">
+          <select id="brand" onchange="updateModels()" class="input-akira text-[10px] cursor-pointer">
+            <option value="">SELECIONE A MARCA</option>
+            <option value="APPLE">APPLE</option>
+            <option value="SAMSUNG">SAMSUNG</option>
+            <option value="MOTOROLA">MOTOROLA</option>
+            <option value="XIAOMI">XIAOMI</option>
+          </select>
+
+          <select id="model" class="input-akira text-[10px] cursor-pointer">
+            <option value="">MODELO</option>
+          </select>
+
+          <select id="nivel" class="input-akira text-[10px] cursor-pointer">
+            <option value="">NÍVEL DE SENSI</option>
+            <option value="BAIXA">BAIXA</option>
+            <option value="MEDIA">MÉDIA</option>
+            <option value="ALTA">ALTA</option>
+          </select>
+
+          <button onclick="gerarSensi()" class="w-full btn-primary py-3 mt-1 text-[10px]">
+            Gerar Configuração
+          </button>
+
+          <div id="results" class="hidden grid grid-cols-2 gap-2 pt-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA GERENCIAR KEY -->
+    <div id="tab-keys" class="hidden">
+      <p class="text-[9px] text-zinc-300 uppercase tracking-[0.45em] mb-4 text-center">
+        Gerenciamento de Key
+      </p>
+      <input id="key-input-aba" class="input-akira mb-3" placeholder="SUA KEY AQUI">
+      <button onclick="validarKeyGerenciamento()" class="w-full btn-primary py-3 text-[10px] mb-3">
+        Verificar Key
+      </button>
+      <div id="key-info" class="text-xs text-zinc-200 whitespace-pre-line"></div>
+    </div>
+  </div>
+
+  <script>
+    /* MESMA CONFIG DO ADMIN – TROQUE PELOS DADOS DO SEU PROJETO */
+    const firebaseConfig = {
+      apiKey: "AIzaSyADWH-HdJUFByEuHBdHZkf7mDSD1-dBnRA",
+      authDomain: "cpx-akira.firebaseapp.com",
+      databaseURL: "https://cpx-akira-default-rtdb.firebaseio.com",
+      projectId: "cpx-akira",
+      storageBucket: "cpx-akira.firebasestorage.app",
+      messagingSenderId: "126066483108",
+      appId: "1:126066483108:web:ecbc2bb38a8e3e8575eb31"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function switchTab(tab) {
+      const sensiTab = document.getElementById('tab-sensi');
+      const keysTab  = document.getElementById('tab-keys');
+      const btnSensi = document.getElementById('tab-sensi-btn');
+      const btnKeys  = document.getElementById('tab-keys-btn');
+
+      if (tab === 'sensi') {
+        sensiTab.classList.remove('hidden');
+        keysTab.classList.add('hidden');
+        btnSensi.classList.add('active');
+        btnKeys.classList.remove('active');
+      } else {
+        sensiTab.classList.add('hidden');
+        keysTab.classList.remove('hidden');
+        btnSensi.classList.remove('active');
+        btnKeys.classList.add('active');
+      }
+    }
+
+    function autenticar() {
+      const key = document.getElementById('key-input').value.trim();
+      if (!key) {
+        alert("Digite sua KEY.");
+        return;
+      }
+      db.ref('chaves/' + key).once('value').then((snap) => {
+        if (snap.exists()) {
+          const d = snap.val();
+          if (d.validade && Date.now() > d.validade) {
+            alert("KEY EXPIRADA!");
+            return;
+          }
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('main-panel').classList.remove('hidden');
+        } else {
+          alert("KEY INVÁLIDA!");
+        }
+      }).catch((err) => {
+        console.error(err);
+        alert("Erro ao validar key.");
+      });
+    }
+
+    function validarKeyGerenciamento() {
+      const key = document.getElementById('key-input-aba').value.trim();
+      const info = document.getElementById('key-info');
+      info.classList.remove('text-red-400');
+      info.textContent = "";
+
+      if (!key) {
+        alert("Digite a key para verificar.");
+        return;
+      }
+
+      db.ref('chaves/' + key).once('value').then((snap) => {
+        if (!snap.exists()) {
+          info.textContent = "Key não encontrada.";
+          info.classList.add('text-red-400');
+          return;
+        }
+        const d = snap.val();
+        if (!d.validade) {
+          info.textContent = "Status: VITALÍCIA
+Sem data de expiração.";
+          return;
+        }
+        const expDate = new Date(d.validade);
+        const status  = Date.now() > d.validade ? "EXPIRADA" : "ATIVA";
+        info.textContent = `Status: ${status}
+Expira em: ${expDate.toLocaleString()}`;
+      }).catch((err) => {
+        console.error(err);
+        info.textContent = "Erro ao consultar key.";
+      });
+    }
+
+    const devices = {
+      APPLE:   ["iPhone X/XR","iPhone 11/12","iPhone 13/14/15"],
+      SAMSUNG: ["Linha A","Linha S","Linha M"],
+      MOTOROLA:["Linha G","Linha Edge"],
+      XIAOMI:  ["Redmi Note","Poco Series"]
+    };
+
+    function updateModels() {
+      const b = document.getElementById('brand').value;
+      const m = document.getElementById('model');
+      m.innerHTML = '<option value="">MODELO</option>';
+      if (b && devices[b]) {
+        devices[b].forEach((item) => {
+          m.innerHTML += `<option value="${item}">${item}</option>`;
+        });
+      }
+    }
+
+    function nivelFactor(nivel) {
+      if (nivel === 'BAIXA') return 0.9;
+      if (nivel === 'ALTA')  return 1.1;
+      return 1.0;
+    }
+
+    function randOffset(base, range = 5) {
+      const delta = Math.floor(Math.random() * (range * 2 + 1)) - range;
+      return base + delta;
+    }
+
+    function getPreset(brand, model, nivel) {
+      const path = `presets/${brand}/${model}/${nivel}`;
+      return db.ref(path).once('value').then((snap) => snap.exists() ? snap.val() : null);
+    }
+
+    async function gerarSensi() {
+      const brand = document.getElementById('brand').value;
+      const model = document.getElementById('model').value;
+      const nivel = document.getElementById('nivel').value;
+
+      if (!brand || !model || !nivel) {
+        alert("Selecione marca, modelo e nível de sensi.");
+        return;
+      }
+
+      const preset = await getPreset(brand, model, nivel);
+      if (!preset) {
+        alert("Sem preset para esse dispositivo/nível.
+Crie em presets/" + brand + "/" + model + "/" + nivel);
+        return;
+      }
+
+      const factor = nivelFactor(nivel);
+
+      const res = document.getElementById('results');
+      res.classList.remove('hidden');
+      res.innerHTML = "";
+
+      const campos = [
+        { label:'GERAL',   key:'GERAL' },
+        { label:'RED DOT', key:'RED'   },
+        { label:'2X',      key:'X2'    },
+        { label:'4X',      key:'X4'    },
+        { label:'DPI',     key:'DPI'   },
+        { label:'BOTÃO',   key:'BOTAO' }
+      ];
+
+      campos.forEach((item) => {
+        const base = (preset[item.key] || 0) * factor;
+        let val;
+        if (item.label === 'BOTÃO') {
+          val = Math.round(randOffset(base, 3)) + '%';
+        } else if (item.label === 'DPI') {
+          val = Math.round(randOffset(base, 80));
+        } else {
+          val = Math.round(randOffset(base, 5));
+        }
+
+        res.innerHTML += `
+          <div class="card-res p-3 text-center">
+            <p class="label-mini mb-1">${item.label} (${nivel})</p>
+            <p class="text-white font-cyber text-lg">${val}</p>
+          </div>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
